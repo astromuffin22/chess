@@ -89,4 +89,73 @@ public class ChessPiece {
         addRookMoves(board, myPosition, moves);
         addBishopMoves(board, myPosition, moves);
     }
+    private void addBishopMoves(ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves) {
+        int[][] directions = {{1,1}, {1,-1}, {-1,1}, {-1,-1}};
+        for (int[] direction : directions) {
+            addMoveIfValid(board, myPosition, direction[0], direction[1], moves, true);
+        }
+    }
+    private void addKnightMoves(ChessBoard board, ChessPosition position, Collection<ChessMove> moves) {
+        int[][] jumps = {{2, 1}, {2, -1}, {-2, 1}, {-2, -1}, {1, 2}, {1, -2}, {-1, 2}, {-1, -2}};
+        for (int[] jump : jumps) {
+            addMoveIfValid(board, position, jump[0], jump[1], moves, false);
+        }
+    }
+    private void addRookMoves(ChessBoard board, ChessPosition position, Collection<ChessMove> moves) {
+        int[][] directions = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+        for (int[] dir : directions) {
+            addMoveIfValid(board, position, dir[0], dir[1], moves, true);
+        }
+    }
+    private void addPawnMoves(ChessBoard board, ChessPosition position, Collection<ChessMove> moves) {
+        int direction = (pieceColor == ChessGame.TeamColor.WHITE) ? 1 : -1;
+
+        // Forward move
+        addMoveIfValid(board, position, direction, 0, moves, false);
+
+        // Capture moves
+        addMoveIfValid(board, position, direction, 1, moves, false, true);
+        addMoveIfValid(board, position, direction, -1, moves, false, true);
+    }
+    private void addMoveIfValid(ChessBoard board, ChessPosition position, int rowOffset, int colOffset,
+                                Collection<ChessMove> moves, boolean repeat) {
+        addMoveIfValid(board, position, rowOffset, colOffset, moves, repeat, false);
+    }
+
+    private void addMoveIfValid(ChessBoard board, ChessPosition position, int rowOffset, int colOffset,
+                                Collection<ChessMove> moves, boolean repeat, boolean captureOnly) {
+        int currentRow = position.getRow();
+        int currentCol = position.getColumn();
+
+        while (true) {
+            currentRow += rowOffset;
+            currentCol += colOffset;
+
+            if (!isWithinBounds(currentRow, currentCol)) {
+                break;
+            }
+
+            ChessPosition newPosition = new ChessPosition(currentRow, currentCol);
+            ChessPiece pieceAtTarget = board.getPiece(newPosition);
+
+            if (pieceAtTarget == null) {
+                if (!captureOnly) {
+                    moves.add(new ChessMove(position, newPosition, null));
+                }
+            } else {
+                if (pieceAtTarget.getTeamColor() != this.pieceColor) {
+                    moves.add(new ChessMove(position, newPosition, null));
+                }
+                break;
+            }
+
+            if (!repeat) {
+                break;
+            }
+        }
+    }
+    private boolean isWithinBounds(int row, int col) {
+        return row >= 1 && row <= 8 && col >= 1 && col <= 8;
+    }
+
 }
